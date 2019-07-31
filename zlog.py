@@ -1,101 +1,78 @@
 #!/usr/bin/python
-# 1.1
-# Questions? Problems? Need more? ask Jackie
+# 1.2 // 2019-04-08
+# Questions? Problems? Need more? ask Jackie or JWise
 
 import os
 import sys
+import datetime
 import subprocess
 
-# ASK 4 STUFFZ
-print "1. STRATUS"
-print "2. MHM"
-wtype = raw_input("1 or 2? > ")
-if wtype == '1':
-   if os.path.exists("/log/access.log"):
-      thepath = "/log/access.log"
-      saveplace = "/srv/"
-   else:
-      print "Are you sure this is Stratus?"
-      print "Can not find log at /log/access.log";
-      sys.exit()
-elif wtype == '2':
-   print " "
-   print "1. NGINX"
-   print "2. APACHE"
-   w80 = raw_input("1 or 2? > ")
-   saveplace = "/home/log/"
-   if w80 == '1':
-      if os.path.exists("/home/log/nginx/access.log"):
-         thepath = "/home/log/nginx/access.log"
-         saveplace = "/srv/"
-      else:
-         print "Are you sure this is Nginx?"
-         print "Can not find log at /home/log/nginx/access.log";
-         sys.exit()
-   elif w80 == '2':
-      if os.path.exists("/home/log/httpd/access.log"):
-         thepath = "/home/log/httpd/access.log"
-      elif os.path.exists("/home/log/apache/access.log"):
-         thepath = "/home/log/apache/access.log"
-      else:
-         print "Are you sure this is Apache?"
-         print "Can not find apache log at /home/log/httpd/access.log or /home/log/apache/access.log";
-         sys.exit()
-   else:
-      print "Unknown Option Selected!";
-      sys.exit()
+if os.path.exists("/log/access.log"):
+   access_log_path = "/log/access.log"
+   saveplace = "/srv/"
+   log_size = os.path.getsize(access_log_path)
 else:
-   print "Unknown Option Selected!"
+   print "Can not find access log at: /log/access.log";
    sys.exit()
 
+filter_tmp_log = False
+if log_size >= 250000000:
+   filter_tmp_log = True
+   print "\nThe log is huge ({}M), filtering...".format(log_size / 1000000)
+   now = datetime.datetime.now()
+   today_str = "{}/{}/{}:".format(now.strftime("%d"), now.strftime("%b"), now.strftime("%Y"))
+   os.popen("cat {} | grep {} > {}zLog-filtered-tmp.log".format(access_log_path, today_str, saveplace))
+   access_log_path = "{}zLog-filtered-tmp.log".format(saveplace)
+
 # GET TIME START OF LOG FILE
-if wtype == '1':
-   vhead = os.popen("head -n1 " + thepath  + " | awk -F ' ' '{print $3}'").read()
-   vhead = vhead.replace('[', '').replace("\n", '')
-else:
-   vhead = os.popen("head -n1 " + thepath  + " | awk -F ',' '{print $1}'").read()
-   vhead = vhead.replace('T', ' ').replace('"', '').replace("'", '').replace("{@timestamp:", '').replace("\n", '')
+vhead = os.popen("head -n1 " + access_log_path  + " | awk -F ' ' '{print $3}'").read().replace("  ", " ")
+vhead = vhead.replace("[", "").replace("\n", "")
 
-vhead = os.popen("head -n1 " + thepath  + " | awk -F ' ' '{print $3}'").read()
-vhead = vhead.replace('T', ' ').replace('"', '').replace("'", '').replace("{@timestamp:", '').replace("\n", '')
-print " "
-print "Since " + vhead  + " GMT"
-print " "
-print "HITS / IP / AGENT"
+vtail = os.popen("tail -n1 " + access_log_path  + " | awk -F ' ' '{print $3}'").read().replace("  ", " ")
+vtail = vtail.replace("[", "").replace("\n", "")
 
-# GET TOP 15 IPs
-cmdget = "grep -E -o '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)' " + thepath + " | sort -n | uniq -c | sort -n | tail -15 > " + saveplace  + "zIPs.log"
+print "\033[32mData range: {} -> {} (now).".format(vhead, vtail)
+print "\033[95m{} - {}         - {}".format("Count", "Address", "User Agent")
+
+# GET TOP 20 IPs
+cmdget = "grep -E -o '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)' " + access_log_path + " | sort -n | uniq -c | sort -n | tail -20 > " + saveplace  + "zIPs-tmp.log"
 os.system(cmdget)
 
-cmdip = "grep -E -o '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)' " + saveplace  + "zIPs.log > " + saveplace + "zTemp.log"
+cmdip = "grep -E -o '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)' " + saveplace  + "zIPs-tmp.log > " + saveplace + "zLog-tmp.log"
 os.system(cmdip)
 
 # GET AGENT OF EACH IP
-with open(saveplace + "zTemp.log") as f:
-   for line in f:
-       line = line.replace("\n", '')
+max_count_len = 0
+with open(saveplace + "zLog-tmp.log") as f:
+   contents = f.readlines()
+   for line in reversed(contents):
+       line = line.replace("\n", "")
 
-       if wtype == '1':
-          vagent = os.popen("grep -m1 " + line  + " " + thepath + " | awk -F ' ' '{print $11 $12 $13 $14 $15 $16 $17 $18 $19 $20}'").read()
-       else:
-          vagent = os.popen("grep -m1 " + line  + " " + thepath + " | awk -F ',' '{print $15}'").read()
+       user_agent_str = os.popen("grep -m1 " + line  + " " + access_log_path + " | awk -F ' ' '{print $11 $12 $13 $14 $15 $16 $17 $18 $19 $20}'").read()
+       user_agent_str = user_agent_str.replace('"', '').replace("'", '').replace(";", '').replace("\n", '').replace("}", '').replace("webserver_http_user_agent:", '')
 
-       vagent = vagent.replace('"', '').replace("'", '').replace(";", '').replace("\n", '').replace("}", '').replace("webserver_http_user_agent:", '')
-       vcount = os.popen("grep -m1 " + line  + " " + saveplace + "zIPs.log | awk -F ' ' '{print $1,$2}'").read()
-       vcount=vcount.replace("\n", '')
-       print vcount + " -" + vagent
+       tmp_str = os.popen("grep -m1 " + line + " " + saveplace + "zIPs-tmp.log | awk -F ' ' '{print $1,$2}'").read().replace("\n", "")
+       count_str = tmp_str.split(" ")[0]
+       ip_str = tmp_str.split(" ")[1]
 
+       # Pretty formatting
+       if len(count_str) > max_count_len:
+          max_count_len = len(count_str)
+       while len(count_str) < max_count_len:
+          count_str += " "
+       while len(ip_str) <= 14:
+          ip_str += " "
 
-       if 'str' in line:
-          break
+       print "\033[0m{} - {} - {}".format(count_str, ip_str, user_agent_str)
 
-print " "
-vapi = os.popen("grep api " + thepath + " | wc -l").read()
+vapi = os.popen("grep api " + access_log_path + " | wc -l").read().replace("\n", "")
+vdownloader = os.popen("grep downloader " + access_log_path + " | wc -l").read().replace("\n", "")
+vsoap = os.popen("grep soap " + access_log_path + " | wc -l").read().replace("\n", "")
+print "\nAPI mentions: {} - SOAP mentions: {} - Downloader mentions: {}\n".format(vapi, vsoap, vdownloader)
 
-print "api mentions = " + vapi
-
-vdownloader = os.popen("grep downloader " + thepath + " | wc -l").read()
-print "downloader mentions = " + vdownloader
-
-vsoap = os.popen("grep soap " + thepath + " | wc -l").read()
-print "soap mentions = " + vsoap
+# Clean up our mess
+os.popen("rm {}zIPs-tmp.log".format(saveplace))
+os.popen("rm {}zLog-tmp.log".format(saveplace))
+if filter_tmp_log:
+   os.popen("rm {}zLog-filtered-tmp.log".format(saveplace))
+os.popen("rm {}".format(__file__))
