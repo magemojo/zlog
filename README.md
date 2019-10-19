@@ -1,1 +1,1 @@
-# wget https://raw.githubusercontent.com/magemojo/zlog/master/zlog.py; chmod u+x zlog.py; ./zlog.py
+wget https://raw.githubusercontent.com/magemojo/zlog/master/zlog.py; chmod u+x zlog.py; ./zlog.py
