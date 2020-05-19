@@ -1,0 +1,89 @@
+#!/usr/bin/python
+# 1.3 // 2020-05-18
+# Questions? Problems? Need more? ask Jackie
+
+import os
+import sys
+import datetime
+import subprocess
+
+if os.path.exists("/log/access.log"):
+   access_log_path = "/log/access.log"
+   saveplace = "/srv/"
+   log_size = os.path.getsize(access_log_path)
+else:
+   print "Can not find access log at: /log/access.log";
+   sys.exit()
+
+filter_tmp_log = False
+if log_size >= 250000000:
+   filter_tmp_log = True
+   print "\nThe log is huge ({}M), filtering...".format(log_size / 1000000)
+   now = datetime.datetime.now()
+   today_str = "{}/{}/{}:".format(now.strftime("%d"), now.strftime("%b"), now.strftime("%Y"))
+   os.popen("cat {} | grep {} > {}zLog-filtered-tmp.log".format(access_log_path, today_str, saveplace))
+   access_log_path = "{}zLog-filtered-tmp.log".format(saveplace)
+
+# GET TIME START OF LOG FILE
+vhead = os.popen("head -n1 " + access_log_path  + " | awk -F ' ' '{print $3}'").read().replace("  ", " ")
+vhead = vhead.replace("[", "").replace("\n", "")
+
+vtail = os.popen("tail -n1 " + access_log_path  + " | awk -F ' ' '{print $3}'").read().replace("  ", " ")
+vtail = vtail.replace("[", "").replace("\n", "")
+
+print "\n" + "\033[1;45m" + str("Top 20 IPs") + "\033[1;m"
+print "\033[32mData range: {} -> {} (now).".format(vhead, vtail)
+print "\033[95m{} - {}         - {}".format("Count", "Address", "User Agent")
+
+# GET TOP 20 IPs
+cmdget = "grep -E -o '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)' " + access_log_path + " | sort -n | uniq -c | sort -n | tail -20 > " + saveplace  + "zIPs-tmp.log"
+os.system(cmdget)
+
+cmdip = "grep -E -o '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)' " + saveplace  + "zIPs-tmp.log > " + saveplace + "zLog-tmp.log"
+os.system(cmdip)
+
+# GET AGENT OF EACH IP
+max_count_len = 0
+with open(saveplace + "zLog-tmp.log") as f:
+   contents = f.readlines()
+   for line in reversed(contents):
+       line = line.replace("\n", "")
+
+       user_agent_str = os.popen("grep -m1 " + line  + " " + access_log_path + " | awk -F ' ' '{print $11 $12 $13 $14 $15 $16 $17 $18 $19 $20}'").read()
+       user_agent_str = user_agent_str.replace('"', '').replace("'", '').replace(";", '').replace("\n", '').replace("}", '').replace("webserver_http_user_agent:", '')
+
+       tmp_str = os.popen("grep -m1 " + line + " " + saveplace + "zIPs-tmp.log | awk -F ' ' '{print $1,$2}'").read().replace("\n", "")
+       count_str = tmp_str.split(" ")[0]
+       ip_str = tmp_str.split(" ")[1]
+
+       # Pretty formatting
+       if len(count_str) > max_count_len:
+          max_count_len = len(count_str)
+       while len(count_str) < max_count_len:
+          count_str += " "
+       while len(ip_str) <= 14:
+          ip_str += " "
+
+       print "\033[0m{} - {} - {}".format(count_str, ip_str, user_agent_str)
+
+vapi = os.popen("grep api " + access_log_path + " | wc -l").read().replace("\n", "")
+vdownloader = os.popen("grep downloader " + access_log_path + " | wc -l").read().replace("\n", "")
+vsoap = os.popen("grep soap " + access_log_path + " | wc -l").read().replace("\n", "")
+print "\nAPI mentions: {} - SOAP mentions: {} - Downloader mentions: {}\n".format(vapi, vsoap, vdownloader)
+
+# GET TOP USER AGENTS
+vagents = os.popen("awk -F\'\"\' \'/GET/ {print $6}\' " + access_log_path + " | cut -d\' \' -f1 | sort | uniq -c | sort -rn | head -n10").read()
+print "\033[1;45m" + str("Top 10 User Agents") + "\033[1;m"
+print vagents
+
+#GET TOP HIT URLs
+vURLs = os.popen("awk {'print $6'} " + access_log_path + " | sort | uniq -c | sort | tail -n10 | sort -r").read()
+print "\n" + "\033[1;45m" + str("Top 10 Hit URLs") + "\033[1;m"
+print vURLs
+
+# Clean up our mess
+os.popen("rm {}zIPs-tmp.log".format(saveplace))
+os.popen("rm {}zLog-tmp.log".format(saveplace))
+if filter_tmp_log:
+   os.popen("rm {}zLog-filtered-tmp.log".format(saveplace))
+os.popen("rm {}".format(__file__))
