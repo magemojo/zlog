@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# 1.3 // 2020-05-18
+# 1.3 // 2020-05-26
 # Questions? Problems? Need more? ask Jackie
 
 import os
@@ -36,7 +36,7 @@ print "\033[32mData range: {} -> {} (now).".format(vhead, vtail)
 print "\033[95m{} - {}         - {}".format("Count", "Address", "User Agent")
 
 # GET TOP 20 IPs
-cmdget = "grep -E -o '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)' " + access_log_path + " | sort -n | uniq -c | sort -n | tail -20 > " + saveplace  + "zIPs-tmp.log"
+cmdget = "awk {'print $1'}  " + access_log_path + " | sort | uniq -c | sort -n | tail -n20 > " + saveplace  + "zIPs-tmp.log"
 os.system(cmdget)
 
 cmdip = "grep -E -o '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)' " + saveplace  + "zIPs-tmp.log > " + saveplace + "zLog-tmp.log"
