@@ -77,7 +77,7 @@ print "\033[1;45m" + str("Top 10 User Agents") + "\033[1;m"
 print vagents
 
 #GET TOP HIT URLs
-vURLs = os.popen("awk {'print $6'} " + access_log_path + " | sort | uniq -c | sort | tail -n10 | sort -r").read()
+vURLs = os.popen("awk {'print $6'} " + access_log_path + " | sort | uniq -c | sort -n | tail -n15").read()
 print "\n" + "\033[1;45m" + str("Top 10 Hit URLs") + "\033[1;m"
 print vURLs
 
