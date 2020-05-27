@@ -78,7 +78,7 @@ print vagents
 
 #GET TOP HIT URLs
 vURLs = os.popen("awk {'print $6'} " + access_log_path + " | sort | uniq -c | sort -n | tail -n15").read()
-print "\n" + "\033[1;45m" + str("Top 10 Hit URLs") + "\033[1;m"
+print "\n" + "\033[1;45m" + str("Top 15 Hit URLs") + "\033[1;m"
 print vURLs
 
 # Clean up our mess
