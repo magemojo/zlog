@@ -332,3 +332,4 @@ if not len(sys.argv) > 1 or args.newfile:
 
 # Clean up our mess
 os.system("rm {}zLog*".format(saveplace))
+os.system("rm ./zlog*")
