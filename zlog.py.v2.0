@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# 2.1 // 2020-12-28
+# 2.0 // 2020-12-28
 # Questions? Problems? Need more? ask Jackie
 
 import os
@@ -31,8 +31,6 @@ parser.add_argument('-w', '--whois', action='store_true',
    help="checks whois by IPs for common traffic sources")
 parser.add_argument('-a', '--attacks', action='store_true',
    help="checks for common attacks/scans")
-parser.add_argument('-c', '--cpu', action='store_true',
-   help="checks for high CPU usage in logs")
 args = parser.parse_args()
 
 
@@ -288,62 +286,6 @@ if args.attacks:
          getagent(line,logfile)
          print("{} - {} - {}".format(count_str, line, user_agent_str))
 
-
-########### --cpu -c IF CPU OPTION IS CHOSEN ##########
-if args.cpu:
-   logfile = input("Enter logfile path (Ex. " + YELLOW + "/log/php-fpm/php.access.log" + NC + "): ")
-   if str(logfile) == "":
-      logfile = "/log/php-fpm/php.access.log"
-
-   # GET HIGH CPU
-   getcpu = "awk -F'\"' '{print $36,$32,$4,$8,$24}' " + logfile + " | sort -n > " + saveplace + "zLog.cpu.log"
-   os.system(getcpu)
-   #print(getcpu)  #debug
-
-   #with open(saveplace + "zLog.cpu.log") as f:
-      #contents = f.readlines()
-      #for line in reversed(contents):
-         #line = line.replace("\n", "")
-         #linelist = line.split() #splits line from file into a list with space delimeter
-         #cpu = linelist[0]
-         #req_time = linelist[1]
-         #timestamp = linelist[2]
-         #ip = linelist[3]
-         #path = linelist[4]
-
-         #if float(cpu) > 100:
-            #print(linelist)  #debug
-
-   # GET TOP 20 IPSs
-   print(" ")
-   print(RED + "Top 20 IPs with CPU > 100" + NC)
-   byip = "awk {'print $4'} " + saveplace + "zLog.cpu.log | sort | uniq -c | sort -n | tail -n20 > " + saveplace + "zLog.cpu.ex.log"
-   os.system(byip)
-
-   # PRINT THE IPs
-   byipshow = os.popen("cat " + saveplace + "zLog.cpu.ex.log").read()
-   print(byipshow)
-
-   #GET EXAMPLE LOGS OF ABOVE IPs
-   byipex = os.popen("awk '{print $2}' " + saveplace + "zLog.cpu.ex.log | tail -n1").read().replace("\n", "")
-   byipexget = os.popen("grep \"" + byipex + "\" " + saveplace + "zLog.cpu.log | tail -n5").read()
-   print(RED + "Examples of IPs:" + NC)
-   print(byipexget)
-
-   # GET TOP 20 PATHS
-   print(RED + "Top 20 paths with CPU > 100" + NC)
-   bypath = "awk {'print $5'} " + saveplace + "zLog.cpu.log | sort | uniq -c | sort -n | tail -n20 > " + saveplace + "zLog.cpu.path.log"
-   os.system(bypath)
-
-   # PRINT THE PATHS
-   bypathshow = os.popen("cat " + saveplace + "zLog.cpu.path.log").read()
-   print(bypathshow)
-
-   #GET EXAMPLE LOGS OF ABOVE PATHS
-   bypathex = os.popen("awk '{print $2}' " + saveplace + "zLog.cpu.path.log | tail -n1").read().replace("\n", "")
-   bypathexget = os.popen("grep \"" + bypathex + "\" " + saveplace + "zLog.cpu.log | tail -n5").read()
-   print(RED + "Examples of PATHS:" + NC)
-   print(bypathexget)
 
 ####### IF NO ARGUMENTS USED, DO SAME OLD REGULAR LOG STATS #######
 if not len(sys.argv) > 1 or args.newfile:
