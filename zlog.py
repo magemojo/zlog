@@ -316,11 +316,12 @@ if args.cpu:
 
    # GET TOP 20 IPSs
    print(" ")
-   print(RED + "Top 20 IPs with CPU > 100" + NC)
+   print(RED + "Top 20 IPs for high CPU" + NC)
    byip = "awk {'print $4'} " + saveplace + "zLog.cpu.log | sort | uniq -c | sort -n | tail -n20 > " + saveplace + "zLog.cpu.ex.log"
    os.system(byip)
 
    # PRINT THE IPs
+   print(YELLOW + " HITS / IP " + NC)
    byipshow = os.popen("cat " + saveplace + "zLog.cpu.ex.log").read()
    print(byipshow)
 
@@ -328,14 +329,16 @@ if args.cpu:
    byipex = os.popen("awk '{print $2}' " + saveplace + "zLog.cpu.ex.log | tail -n1").read().replace("\n", "")
    byipexget = os.popen("grep \"" + byipex + "\" " + saveplace + "zLog.cpu.log | tail -n5").read()
    print(RED + "Examples of IPs:" + NC)
+   print(YELLOW + "CPU% / request_time / timestamp / IP / path" + NC)
    print(byipexget)
 
    # GET TOP 20 PATHS
-   print(RED + "Top 20 paths with CPU > 100" + NC)
+   print(RED + "Top 20 paths for high CPU" + NC)
    bypath = "awk {'print $5'} " + saveplace + "zLog.cpu.log | sort | uniq -c | sort -n | tail -n20 > " + saveplace + "zLog.cpu.path.log"
    os.system(bypath)
 
    # PRINT THE PATHS
+   print(YELLOW + "HITS / PATH" + NC)
    bypathshow = os.popen("cat " + saveplace + "zLog.cpu.path.log").read()
    print(bypathshow)
 
@@ -343,6 +346,7 @@ if args.cpu:
    bypathex = os.popen("awk '{print $2}' " + saveplace + "zLog.cpu.path.log | tail -n1").read().replace("\n", "")
    bypathexget = os.popen("grep \"" + bypathex + "\" " + saveplace + "zLog.cpu.log | tail -n5").read()
    print(RED + "Examples of PATHS:" + NC)
+   print(YELLOW + "CPU% / request_time / timestamp / IP / path" + NC)
    print(bypathexget)
 
 ####### IF NO ARGUMENTS USED, DO SAME OLD REGULAR LOG STATS #######
