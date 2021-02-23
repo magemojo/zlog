@@ -1,5 +1,9 @@
 wget https://raw.githubusercontent.com/magemojo/zlog/master/zlog.py; python3 ./zlog.py
 
+Updated 2-23-2021 CPU usage
+
+    -c, --cpu  allows you to examine high CPU usage in PHP-FPM logs
+
 Updated 12-28-2020 Added new options
 
     -n, --newfile  allows you to examine log file besides the default
