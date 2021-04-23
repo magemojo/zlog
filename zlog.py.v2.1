@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# 2.2 // 2020-4-22
+# 2.1 // 2020-12-28
 # Questions? Problems? Need more? ask Jackie
 
 import os
@@ -197,12 +197,6 @@ if args.attacks:
    account2 = os.popen("grep ' /customer/account/login' " + logfile + " | grep POST | wc -l").read().replace("\n", "")
    print("10. customer/account/login POSTS: " + YELLOW + account2 + NC)
 
-   search = os.popen("grep ' /catalogsearch/result' " + logfile + " | wc -l").read().replace("\n", "")
-   print("11. catalogsearch/result HITS: " + YELLOW + search + NC)
-
-   pp = os.popen("grep /paypal/transparent/requestSecureToken " + logfile + " | grep POST | wc -l").read().replace("\n", "")
-   print("12. paypal/transparent/requestSecureToken POSTS): " + YELLOW + pp + NC)
-
    print(" ")
    pick = input("Examine one of the above? If so, input #: ")
    #print("pick = " + pick + " carding = " + carding)  #debug
@@ -258,16 +252,6 @@ if args.attacks:
          sys.exit(RED + "Results were 0 for account/login. Nothing to examine." + NC)
       else:
          examine = "grep ' /customer/account/login' " + logfile + " | grep POST > " + saveplace + "zLog.tmp.attacks"
-   elif int(pick) == 11:
-      if str(search) == "0":
-         sys.exit(RED + "Results were 0 for search. Nothing to examine." + NC)
-      else:
-         examine = "grep ' /catalogsearch/result' " + logfile + " > " + saveplace + "zLog.tmp.attacks"
-   elif int(pick) == 12:
-      if str(pp) == "0":
-         sys.exit(RED + "Results were 0 for paypal posts. Nothing to examine." + NC)
-      else:
-         examine = "grep /paypal/transparent/requestSecureToken " + logfile + " | grep POST > " + saveplace + "zLog.tmp.attacks"
 
    # if user chooses no option or hits enter go backto prompt
    else:

@@ -1,16 +1,20 @@
 wget https://raw.githubusercontent.com/magemojo/zlog/master/zlog.py; python3 ./zlog.py
 
-Updated 2-23-2021 CPU usage
+Updated 4-22-2021 2.2
+
+    Added paypal carding detection & catalogsearch hits to --attacks
+
+Updated 2-23-2021 CPU usage 2.1
 
     -c, --cpu  allows you to examine high CPU usage in PHP-FPM logs
 
-Updated 12-28-2020 Added new options
+Updated 12-28-2020 Added new options 2.0
 
     -n, --newfile  allows you to examine log file besides the default
     -w, --whois    checks whois by IPs for common traffic sources
     -a, --attacks  checks for common attacks/scans
     
-Updated 5-18-2020 Added Top 10 URLs hit & Top 10 User Agents
+Updated 5-18-2020 Added Top 10 URLs hit & Top 10 User Agents 1.3
 
 AHK
 ::;zlog::
