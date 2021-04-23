@@ -201,7 +201,7 @@ if args.attacks:
    print("11. catalogsearch/result HITS: " + YELLOW + search + NC)
 
    pp = os.popen("grep /paypal/transparent/requestSecureToken " + logfile + " | grep POST | wc -l").read().replace("\n", "")
-   print("12. paypal/transparent/requestSecureToken POSTS): " + YELLOW + pp + NC)
+   print("12. paypal/transparent/requestSecureToken POSTS: " + YELLOW + pp + NC)
 
    print(" ")
    pick = input("Examine one of the above? If so, input #: ")
