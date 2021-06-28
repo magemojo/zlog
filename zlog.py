@@ -312,7 +312,8 @@ if args.cpu:
       logfile = "/log/php-fpm/php.access.log"
 
    # GET HIGH CPU
-   getcpu = "awk -F'\"' '{print $36,$32,$4,$8,$24}' " + logfile + " | sort -n > " + saveplace + "zLog.cpu.log"
+   #getcpuOLD = "awk -F'\"' '{print $36,$32,$4,$8,$24}' " + logfile + " | sort -n > " + saveplace + "zLog.cpu.log"
+   getcpu = "grep -av php-fpm-status " + logfile + " | awk -F'\"' '{print $36,$32,$4,$8,$24}' | sort -n > " + saveplace + "zLog.cpu.log"
    os.system(getcpu)
    #print(getcpu)  #debug
 
