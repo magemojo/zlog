@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# 2.3 // 2021-7-1
+# 2.2 // 2020-4-22
 # Questions? Problems? Need more? ask Jackie
 
 import os
@@ -26,15 +26,13 @@ if sys.version_info[0] < 3:
 ######### EXTRA ARGUMENT MAGIC AKA LETS DO OTHER THINGS ##########
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--newfile', action='store_true',
-   help="allows you to examine log file besides the default: python3 zlog.py --newfile")
+   help="allows you to examine log file besides the default")
 parser.add_argument('-w', '--whois', action='store_true',
-   help="checks whois by IPs for common traffic sources: python3 zlog.py --whois")
+   help="checks whois by IPs for common traffic sources")
 parser.add_argument('-a', '--attacks', action='store_true',
-   help="checks for common attacks/scans: python3 zlog.py --attacks")
+   help="checks for common attacks/scans")
 parser.add_argument('-c', '--cpu', action='store_true',
-   help="checks for high CPU usage in logs: python3 zlog.py --cpu")
-parser.add_argument('-m', '--min', action='store', dest='min', type=int,
-   help="check logs for past x minutes: python3 zlog.py --attacks --min 5")
+   help="checks for high CPU usage in logs")
 args = parser.parse_args()
 
 
@@ -89,7 +87,6 @@ if args.newfile:
    logfile = input("Enter logfile path (Ex. " + YELLOW + "/log/access.log.1" + NC + "): ")
    if str(logfile) == "":
       logfile = "/log/access.log"
-
    #past this point uses same code as default zlog
 
 ######## --whois -w IF WHOIS OPTION CHOSEN #########
@@ -100,13 +97,6 @@ if args.whois:
    logfile = input("Enter logfile path (Ex. " + YELLOW + "/log/access.log" + NC + "): ")
    if str(logfile) == "":
       logfile = "/log/access.log"
-
-   # check if minutes are chosen
-   if args.min:
-      if args.min >= 1:
-         getmins = "awk -v d1=\"$(date --date=\"-" + str(args.min) + " min\" \"+%d/%b/%Y:%T\")\" -v d2=\"$(date \"+%d/%b/%Y:%T\")\" '{gsub(/^[\[\t]+/, \"\", $3);}; $3 > d1 && $3 < d2 || $3 ~ d2' " + logfile + " > " + saveplace + "zLog.min.tmp"
-         os.system(getmins)
-         logfile = saveplace + "zLog.min.tmp"
 
    # CHECK LOGFILE
    checklog(logfile,saveplace)
@@ -175,14 +165,6 @@ if args.attacks:
 
    print(" ")
    print(YELLOW + "PATH / HITS" + NC)
-
-   # check if minutes are chosen
-   if args.min:
-      if args.min >= 1:
-         getmins = "awk -v d1=\"$(date --date=\"-" + str(args.min) + " min\" \"+%d/%b/%Y:%T\")\" -v d2=\"$(date \"+%d/%b/%Y:%T\")\" '{gsub(/^[\[\t]+/, \"\", $3);}; $3 > d1 && $3 < d2 || $3 ~ d2' " + logfile + " > " + saveplace + "zLog.min.tmp"
-         os.system(getmins)
-         logfile = saveplace + "zLog.min.tmp"
-         #print(getmins)  #debug
 
    # payment-informtation API hits declined (carding attack)
    carding = os.popen("grep payment-information " + logfile + " | grep ' 400 ' | grep POST | wc -l").read().replace("\n", "")
@@ -291,8 +273,8 @@ if args.attacks:
    else:
       sys.exit("Nothing chosen. Later!")
 
-   # print 100 chosen attack examples
-   print("\n" + HPINK + str("100 example logs") + "\033[1;m")
+   # print 5 chosen attack examples
+   print("\n" + HPINK + str("5 example logs") + "\033[1;m")
    os.system(examine)
    stop = 0
    with open(saveplace + "zLog.tmp.attacks") as a:
@@ -300,7 +282,7 @@ if args.attacks:
          line = line.replace("\n", "")
          print(line)
          stop = stop + 1
-         if stop == 100:
+         if stop == 5:
             break
 
    # get IPs
@@ -330,9 +312,24 @@ if args.cpu:
       logfile = "/log/php-fpm/php.access.log"
 
    # GET HIGH CPU
+   #getcpuOLD = "awk -F'\"' '{print $36,$32,$4,$8,$24}' " + logfile + " | sort -n > " + saveplace + "zLog.cpu.log"
    getcpu = "grep -av php-fpm-status " + logfile + " | awk -F'\"' '{print $36,$32,$4,$8,$24}' | sort -n > " + saveplace + "zLog.cpu.log"
    os.system(getcpu)
    #print(getcpu)  #debug
+
+   #with open(saveplace + "zLog.cpu.log") as f:
+      #contents = f.readlines()
+      #for line in reversed(contents):
+         #line = line.replace("\n", "")
+         #linelist = line.split() #splits line from file into a list with space delimeter
+         #cpu = linelist[0]
+         #req_time = linelist[1]
+         #timestamp = linelist[2]
+         #ip = linelist[3]
+         #path = linelist[4]
+
+         #if float(cpu) > 100:
+            #print(linelist)  #debug
 
    # GET TOP 20 IPSs
    print(" ")
@@ -347,7 +344,7 @@ if args.cpu:
 
    #GET EXAMPLE LOGS OF ABOVE IPs
    byipex = os.popen("awk '{print $2}' " + saveplace + "zLog.cpu.ex.log | tail -n1").read().replace("\n", "")
-   byipexget = os.popen("grep \"" + byipex + "\" " + saveplace + "zLog.cpu.log | tail -n20").read()
+   byipexget = os.popen("grep \"" + byipex + "\" " + saveplace + "zLog.cpu.log | tail -n5").read()
    print(RED + "Examples of IPs:" + NC)
    print(YELLOW + "CPU% / request_time / timestamp / IP / path" + NC)
    print(byipexget)
@@ -364,28 +361,13 @@ if args.cpu:
 
    #GET EXAMPLE LOGS OF ABOVE PATHS
    bypathex = os.popen("awk '{print $2}' " + saveplace + "zLog.cpu.path.log | tail -n1").read().replace("\n", "")
-   bypathexget = os.popen("grep \"" + bypathex + "\" " + saveplace + "zLog.cpu.log | tail -n20").read()
+   bypathexget = os.popen("grep \"" + bypathex + "\" " + saveplace + "zLog.cpu.log | tail -n5").read()
    print(RED + "Examples of PATHS:" + NC)
    print(YELLOW + "CPU% / request_time / timestamp / IP / path" + NC)
    print(bypathexget)
 
-  # check if minutes are chosen
-   if args.min:
-      if args.min >= 1:
-         #getmins = "awk -v d1=\"$(date --date=\"-" + str(args.min) + " min\" \"+%d/%b/%Y:%T\")\" -v d2=\"$(date \"+%d/%b/%Y:%T\")\" '{gsub(/^[\[\t]+/, \"\", $3);}; $3 > d1 && $3 < d2 || $
-         #os.system(getmins)
-         #logfile = saveplace + "zLog.min.tmp"
-         print(RED + "--min -m does not work with --cpu yet. Here is the whole enchilada" + NC)
-
 ####### IF NO ARGUMENTS USED, DO SAME OLD REGULAR LOG STATS #######
-#if not len(sys.argv) > 1 or args.newfile:
-if (not len(sys.argv) > 1) or (args.newfile) or (args.min and not args.attacks and not args.whois and not args.cpu):
-   # check if minutes are chosen
-   if args.min:
-      if args.min >= 1:
-         getmins = "awk -v d1=\"$(date --date=\"-" + str(args.min) + " min\" \"+%d/%b/%Y:%T\")\" -v d2=\"$(date \"+%d/%b/%Y:%T\")\" '{gsub(/^[\[\t]+/, \"\", $3);}; $3 > d1 && $3 < d2 || $3 ~ d2' " + logfile + " > " + saveplace + "zLog.min.tmp"
-         os.system(getmins)
-         logfile = saveplace + "zLog.min.tmp"
+if not len(sys.argv) > 1 or args.newfile:
 
    #CHECK LOGFILE
    checklog(logfile,saveplace)
@@ -423,8 +405,8 @@ if (not len(sys.argv) > 1) or (args.newfile) or (args.min and not args.attacks a
    print(vagents)
 
    #GET TOP HIT URLs
-   vURLs = os.popen("awk {'print $6'} " + logfile + " | sort | uniq -c | sort -n | tail -n20").read()
-   print("\n" + HPINK + str("Top 20 Hit URLs") + NC)
+   vURLs = os.popen("awk {'print $6'} " + logfile + " | sort | uniq -c | sort -n | tail -n15").read()
+   print("\n" + HPINK + str("Top 15 Hit URLs") + NC)
    print(vURLs)
 
 # Clean up our mess
